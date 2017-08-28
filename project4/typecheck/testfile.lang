@@ -1,0 +1,8 @@
+procedure Main() return integer
+{
+	procedure Foo( x : integer) return integer
+	{
+		return 0;
+	}
+	return 0;
+}

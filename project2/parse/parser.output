@@ -1,0 +1,2802 @@
+Grammar
+
+    0 $accept: Start $end
+
+    1 Start: Function
+
+    2 Function: Function T_PROC ID '(' VariableDeclaration ')' T_RET VariableType Body
+    3         | T_PROC ID '(' VariableDeclaration ')' T_RET VariableType Body
+
+    4 Body: '{' Function VariableDeclaration3 Body2 Return '}'
+    5     | '{' Function Body2 Return '}'
+    6     | '{' Function VariableDeclaration3 Return '}'
+    7     | '{' Function Return '}'
+    8     | '{' VariableDeclaration3 Return '}'
+    9     | '{' VariableDeclaration3 Body2 Return '}'
+   10     | '{' Body2 Return '}'
+   11     | '{' Return '}'
+
+   12 Body2: IfWhile Body2
+   13      | IfWhile
+   14      | Statement Body2
+   15      | Statement
+   16      | Body3 Body2
+   17      | Body3
+
+   18 Body3: '{' VariableDeclaration3 Body2 '}'
+   19      | '{' VariableDeclaration3 '}'
+   20      | '{' Body2 '}'
+   21      | '{' '}'
+
+   22 Statement: Expression ';'
+   23          | Assignment ';'
+   24          | FunctionStatement ';'
+
+   25 Expression: Expression T_PLUS Term
+   26           | Expression T_MINUS Term
+   27           | Term
+
+   28 Term: Term T_TIMES Factor
+   29     | Term T_FSLASH Factor
+   30     | Term '%' Factor
+   31     | Term T_AND Factor
+   32     | Term T_OR Factor
+   33     | Term T_EQEQ Factor
+   34     | Term T_LTE Factor
+   35     | Term T_LT Factor
+   36     | Term T_GTE Factor
+   37     | Term T_GT Factor
+   38     | Term T_NOTEQ Factor
+   39     | Factor
+
+   40 Factor: '(' Expression ')'
+   41       | Integers
+   42       | T_MINUS Factor
+   43       | T_PLUS Factor
+   44       | T_DEREF Factor
+   45       | T_NOT Factor
+   46       | T_FALSE
+   47       | T_TRUE
+   48       | ID
+   49       | T_NULL
+
+   50 Assignment: ID T_EQ Expression
+   51           | ID T_EQ T_STRING
+   52           | ID T_EQ T_CHARACTER
+
+   53 Integers: T_INTBIN
+   54         | '|' T_INTBIN '|'
+   55         | T_INTOCT
+   56         | '|' T_INTOCT '|'
+   57         | T_INTDEC
+   58         | '|' T_INTDEC '|'
+   59         | T_INTHEX
+   60         | '|' T_INTHEX '|'
+
+   61 VariableType: T_INT
+   62             | T_INTPTR
+   63             | T_BOOL
+   64             | T_STR '[' Integers ']'
+   65             | T_CHAR
+   66             | T_CHARPTR
+
+   67 VariableDeclaration: VariableDeclaration2
+   68                    | %empty
+
+   69 VariableDeclaration2: VariablesDeclaration VariableType
+   70                     | VariableDeclaration2 ';' VariablesDeclaration VariableType
+
+   71 VariableDeclaration3: T_VAR VariablesDeclaration VariableType ';'
+   72                     | VariableDeclaration3 T_VAR VariablesDeclaration VariableType ';'
+
+   73 VariablesDeclaration: ID ',' VariablesDeclaration
+   74                     | ID ':'
+
+   75 IfWhile: T_IF '(' Expression ')' '{' Body2 '}'
+   76        | T_IF '(' Expression ')' '{' '}'
+   77        | T_IF '(' Expression ')' '{' Body2 '}' Else
+   78        | T_WHILE '(' Expression ')' '{' '}'
+   79        | T_WHILE '(' Expression ')' '{' Body2 '}'
+
+   80 Else: T_ELSE '{' Body2 '}'
+
+   81 ID: T_ID
+   82   | '|' T_ID '|'
+   83   | T_ID '[' Expression ']'
+   84   | T_ADDRESS T_ID
+   85   | T_ADDRESS T_ID '[' Expression ']'
+
+   86 FunctionStatement: ID T_EQ FunctionCall
+
+   87 FunctionCall: ID '(' FunctionExpression1 ')'
+
+   88 FunctionExpression1: FunctionExpression
+   89                    | %empty
+
+   90 FunctionExpression: Expression ',' FunctionExpression
+   91                   | Expression
+
+   92 Return: T_RET Expression ';'
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+'%' (37) 30
+'(' (40) 2 3 40 75 76 77 78 79 87
+')' (41) 2 3 40 75 76 77 78 79 87
+',' (44) 73 90
+':' (58) 74
+';' (59) 22 23 24 70 71 72 92
+'[' (91) 64 83 85
+']' (93) 64 83 85
+'{' (123) 4 5 6 7 8 9 10 11 18 19 20 21 75 76 77 78 79 80
+'|' (124) 54 56 58 60 82
+'}' (125) 4 5 6 7 8 9 10 11 18 19 20 21 75 76 77 78 79 80
+error (256)
+T_OR (258) 32
+T_AND (259) 31
+T_LT (260) 35
+T_LTE (261) 34
+T_GT (262) 37
+T_GTE (263) 36
+T_NOTEQ (264) 38
+T_EQEQ (265) 33
+T_PLUS (266) 25 43
+T_MINUS (267) 26 42
+T_ID (268) 81 82 83 84 85
+T_STRING (269) 51
+T_CHARACTER (270) 52
+T_NOT (271) 45
+T_BOOL (272) 63
+T_CHAR (273) 65
+T_INT (274) 61
+T_STR (275) 64
+T_INTPTR (276) 62
+T_CHARPTR (277) 66
+T_IF (278) 75 76 77
+T_ELSE (279) 80
+T_WHILE (280) 78 79
+T_VAR (281) 71 72
+T_PROC (282) 2 3
+T_RET (283) 2 3 92
+T_NULL (284) 49
+T_FSLASH (285) 29
+T_EQ (286) 50 51 52 86
+T_ADDRESS (287) 84 85
+T_DEREF (288) 44
+T_TRUE (289) 47
+T_FALSE (290) 46
+T_INTBIN (291) 53 54
+T_INTOCT (292) 55 56
+T_INTDEC (293) 57 58
+T_INTHEX (294) 59 60
+T_TIMES (295) 28
+
+
+Nonterminals, with rules where they appear
+
+$accept (52)
+    on left: 0
+Start (53)
+    on left: 1, on right: 0
+Function (54)
+    on left: 2 3, on right: 1 2 4 5 6 7
+Body (55)
+    on left: 4 5 6 7 8 9 10 11, on right: 2 3
+Body2 (56)
+    on left: 12 13 14 15 16 17, on right: 4 5 9 10 12 14 16 18 20 75
+    77 79 80
+Body3 (57)
+    on left: 18 19 20 21, on right: 16 17
+Statement (58)
+    on left: 22 23 24, on right: 14 15
+Expression (59)
+    on left: 25 26 27, on right: 22 25 26 40 50 75 76 77 78 79 83 85
+    90 91 92
+Term (60)
+    on left: 28 29 30 31 32 33 34 35 36 37 38 39, on right: 25 26 27
+    28 29 30 31 32 33 34 35 36 37 38
+Factor (61)
+    on left: 40 41 42 43 44 45 46 47 48 49, on right: 28 29 30 31 32
+    33 34 35 36 37 38 39 42 43 44 45
+Assignment (62)
+    on left: 50 51 52, on right: 23
+Integers (63)
+    on left: 53 54 55 56 57 58 59 60, on right: 41 64
+VariableType (64)
+    on left: 61 62 63 64 65 66, on right: 2 3 69 70 71 72
+VariableDeclaration (65)
+    on left: 67 68, on right: 2 3
+VariableDeclaration2 (66)
+    on left: 69 70, on right: 67 70
+VariableDeclaration3 (67)
+    on left: 71 72, on right: 4 6 8 9 18 19 72
+VariablesDeclaration (68)
+    on left: 73 74, on right: 69 70 71 72 73
+IfWhile (69)
+    on left: 75 76 77 78 79, on right: 12 13
+Else (70)
+    on left: 80, on right: 77
+ID (71)
+    on left: 81 82 83 84 85, on right: 2 3 48 50 51 52 73 74 86 87
+FunctionStatement (72)
+    on left: 86, on right: 24
+FunctionCall (73)
+    on left: 87, on right: 86
+FunctionExpression1 (74)
+    on left: 88 89, on right: 87
+FunctionExpression (75)
+    on left: 90 91, on right: 88 90
+Return (76)
+    on left: 92, on right: 4 5 6 7 8 9 10 11
+
+
+State 0
+
+    0 $accept: . Start $end
+
+    T_PROC  shift, and go to state 1
+
+    Start     go to state 2
+    Function  go to state 3
+
+
+State 1
+
+    3 Function: T_PROC . ID '(' VariableDeclaration ')' T_RET VariableType Body
+
+    T_ID       shift, and go to state 4
+    T_ADDRESS  shift, and go to state 5
+    '|'        shift, and go to state 6
+
+    ID  go to state 7
+
+
+State 2
+
+    0 $accept: Start . $end
+
+    $end  shift, and go to state 8
+
+
+State 3
+
+    1 Start: Function .
+    2 Function: Function . T_PROC ID '(' VariableDeclaration ')' T_RET VariableType Body
+
+    T_PROC  shift, and go to state 9
+
+    $default  reduce using rule 1 (Start)
+
+
+State 4
+
+   81 ID: T_ID .
+   83   | T_ID . '[' Expression ']'
+
+    '['  shift, and go to state 10
+
+    $default  reduce using rule 81 (ID)
+
+
+State 5
+
+   84 ID: T_ADDRESS . T_ID
+   85   | T_ADDRESS . T_ID '[' Expression ']'
+
+    T_ID  shift, and go to state 11
+
+
+State 6
+
+   82 ID: '|' . T_ID '|'
+
+    T_ID  shift, and go to state 12
+
+
+State 7
+
+    3 Function: T_PROC ID . '(' VariableDeclaration ')' T_RET VariableType Body
+
+    '('  shift, and go to state 13
+
+
+State 8
+
+    0 $accept: Start $end .
+
+    $default  accept
+
+
+State 9
+
+    2 Function: Function T_PROC . ID '(' VariableDeclaration ')' T_RET VariableType Body
+
+    T_ID       shift, and go to state 4
+    T_ADDRESS  shift, and go to state 5
+    '|'        shift, and go to state 6
+
+    ID  go to state 14
+
+
+State 10
+
+   83 ID: T_ID '[' . Expression ']'
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '|'        shift, and go to state 27
+
+    Expression  go to state 28
+    Term        go to state 29
+    Factor      go to state 30
+    Integers    go to state 31
+    ID          go to state 32
+
+
+State 11
+
+   84 ID: T_ADDRESS T_ID .
+   85   | T_ADDRESS T_ID . '[' Expression ']'
+
+    '['  shift, and go to state 33
+
+    $default  reduce using rule 84 (ID)
+
+
+State 12
+
+   82 ID: '|' T_ID . '|'
+
+    '|'  shift, and go to state 34
+
+
+State 13
+
+    3 Function: T_PROC ID '(' . VariableDeclaration ')' T_RET VariableType Body
+
+    T_ID       shift, and go to state 4
+    T_ADDRESS  shift, and go to state 5
+    '|'        shift, and go to state 6
+
+    $default  reduce using rule 68 (VariableDeclaration)
+
+    VariableDeclaration   go to state 35
+    VariableDeclaration2  go to state 36
+    VariablesDeclaration  go to state 37
+    ID                    go to state 38
+
+
+State 14
+
+    2 Function: Function T_PROC ID . '(' VariableDeclaration ')' T_RET VariableType Body
+
+    '('  shift, and go to state 39
+
+
+State 15
+
+   43 Factor: T_PLUS . Factor
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '|'        shift, and go to state 27
+
+    Factor    go to state 40
+    Integers  go to state 31
+    ID        go to state 32
+
+
+State 16
+
+   42 Factor: T_MINUS . Factor
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '|'        shift, and go to state 27
+
+    Factor    go to state 41
+    Integers  go to state 31
+    ID        go to state 32
+
+
+State 17
+
+   45 Factor: T_NOT . Factor
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '|'        shift, and go to state 27
+
+    Factor    go to state 42
+    Integers  go to state 31
+    ID        go to state 32
+
+
+State 18
+
+   49 Factor: T_NULL .
+
+    $default  reduce using rule 49 (Factor)
+
+
+State 19
+
+   44 Factor: T_DEREF . Factor
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '|'        shift, and go to state 27
+
+    Factor    go to state 43
+    Integers  go to state 31
+    ID        go to state 32
+
+
+State 20
+
+   47 Factor: T_TRUE .
+
+    $default  reduce using rule 47 (Factor)
+
+
+State 21
+
+   46 Factor: T_FALSE .
+
+    $default  reduce using rule 46 (Factor)
+
+
+State 22
+
+   53 Integers: T_INTBIN .
+
+    $default  reduce using rule 53 (Integers)
+
+
+State 23
+
+   55 Integers: T_INTOCT .
+
+    $default  reduce using rule 55 (Integers)
+
+
+State 24
+
+   57 Integers: T_INTDEC .
+
+    $default  reduce using rule 57 (Integers)
+
+
+State 25
+
+   59 Integers: T_INTHEX .
+
+    $default  reduce using rule 59 (Integers)
+
+
+State 26
+
+   40 Factor: '(' . Expression ')'
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '|'        shift, and go to state 27
+
+    Expression  go to state 44
+    Term        go to state 29
+    Factor      go to state 30
+    Integers    go to state 31
+    ID          go to state 32
+
+
+State 27
+
+   54 Integers: '|' . T_INTBIN '|'
+   56         | '|' . T_INTOCT '|'
+   58         | '|' . T_INTDEC '|'
+   60         | '|' . T_INTHEX '|'
+   82 ID: '|' . T_ID '|'
+
+    T_ID      shift, and go to state 12
+    T_INTBIN  shift, and go to state 45
+    T_INTOCT  shift, and go to state 46
+    T_INTDEC  shift, and go to state 47
+    T_INTHEX  shift, and go to state 48
+
+
+State 28
+
+   25 Expression: Expression . T_PLUS Term
+   26           | Expression . T_MINUS Term
+   83 ID: T_ID '[' Expression . ']'
+
+    T_PLUS   shift, and go to state 49
+    T_MINUS  shift, and go to state 50
+    ']'      shift, and go to state 51
+
+
+State 29
+
+   27 Expression: Term .
+   28 Term: Term . T_TIMES Factor
+   29     | Term . T_FSLASH Factor
+   30     | Term . '%' Factor
+   31     | Term . T_AND Factor
+   32     | Term . T_OR Factor
+   33     | Term . T_EQEQ Factor
+   34     | Term . T_LTE Factor
+   35     | Term . T_LT Factor
+   36     | Term . T_GTE Factor
+   37     | Term . T_GT Factor
+   38     | Term . T_NOTEQ Factor
+
+    T_OR      shift, and go to state 52
+    T_AND     shift, and go to state 53
+    T_LT      shift, and go to state 54
+    T_LTE     shift, and go to state 55
+    T_GT      shift, and go to state 56
+    T_GTE     shift, and go to state 57
+    T_NOTEQ   shift, and go to state 58
+    T_EQEQ    shift, and go to state 59
+    T_FSLASH  shift, and go to state 60
+    T_TIMES   shift, and go to state 61
+    '%'       shift, and go to state 62
+
+    $default  reduce using rule 27 (Expression)
+
+
+State 30
+
+   39 Term: Factor .
+
+    $default  reduce using rule 39 (Term)
+
+
+State 31
+
+   41 Factor: Integers .
+
+    $default  reduce using rule 41 (Factor)
+
+
+State 32
+
+   48 Factor: ID .
+
+    $default  reduce using rule 48 (Factor)
+
+
+State 33
+
+   85 ID: T_ADDRESS T_ID '[' . Expression ']'
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '|'        shift, and go to state 27
+
+    Expression  go to state 63
+    Term        go to state 29
+    Factor      go to state 30
+    Integers    go to state 31
+    ID          go to state 32
+
+
+State 34
+
+   82 ID: '|' T_ID '|' .
+
+    $default  reduce using rule 82 (ID)
+
+
+State 35
+
+    3 Function: T_PROC ID '(' VariableDeclaration . ')' T_RET VariableType Body
+
+    ')'  shift, and go to state 64
+
+
+State 36
+
+   67 VariableDeclaration: VariableDeclaration2 .
+   70 VariableDeclaration2: VariableDeclaration2 . ';' VariablesDeclaration VariableType
+
+    ';'  shift, and go to state 65
+
+    $default  reduce using rule 67 (VariableDeclaration)
+
+
+State 37
+
+   69 VariableDeclaration2: VariablesDeclaration . VariableType
+
+    T_BOOL     shift, and go to state 66
+    T_CHAR     shift, and go to state 67
+    T_INT      shift, and go to state 68
+    T_STR      shift, and go to state 69
+    T_INTPTR   shift, and go to state 70
+    T_CHARPTR  shift, and go to state 71
+
+    VariableType  go to state 72
+
+
+State 38
+
+   73 VariablesDeclaration: ID . ',' VariablesDeclaration
+   74                     | ID . ':'
+
+    ','  shift, and go to state 73
+    ':'  shift, and go to state 74
+
+
+State 39
+
+    2 Function: Function T_PROC ID '(' . VariableDeclaration ')' T_RET VariableType Body
+
+    T_ID       shift, and go to state 4
+    T_ADDRESS  shift, and go to state 5
+    '|'        shift, and go to state 6
+
+    $default  reduce using rule 68 (VariableDeclaration)
+
+    VariableDeclaration   go to state 75
+    VariableDeclaration2  go to state 36
+    VariablesDeclaration  go to state 37
+    ID                    go to state 38
+
+
+State 40
+
+   43 Factor: T_PLUS Factor .
+
+    $default  reduce using rule 43 (Factor)
+
+
+State 41
+
+   42 Factor: T_MINUS Factor .
+
+    $default  reduce using rule 42 (Factor)
+
+
+State 42
+
+   45 Factor: T_NOT Factor .
+
+    $default  reduce using rule 45 (Factor)
+
+
+State 43
+
+   44 Factor: T_DEREF Factor .
+
+    $default  reduce using rule 44 (Factor)
+
+
+State 44
+
+   25 Expression: Expression . T_PLUS Term
+   26           | Expression . T_MINUS Term
+   40 Factor: '(' Expression . ')'
+
+    T_PLUS   shift, and go to state 49
+    T_MINUS  shift, and go to state 50
+    ')'      shift, and go to state 76
+
+
+State 45
+
+   54 Integers: '|' T_INTBIN . '|'
+
+    '|'  shift, and go to state 77
+
+
+State 46
+
+   56 Integers: '|' T_INTOCT . '|'
+
+    '|'  shift, and go to state 78
+
+
+State 47
+
+   58 Integers: '|' T_INTDEC . '|'
+
+    '|'  shift, and go to state 79
+
+
+State 48
+
+   60 Integers: '|' T_INTHEX . '|'
+
+    '|'  shift, and go to state 80
+
+
+State 49
+
+   25 Expression: Expression T_PLUS . Term
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '|'        shift, and go to state 27
+
+    Term      go to state 81
+    Factor    go to state 30
+    Integers  go to state 31
+    ID        go to state 32
+
+
+State 50
+
+   26 Expression: Expression T_MINUS . Term
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '|'        shift, and go to state 27
+
+    Term      go to state 82
+    Factor    go to state 30
+    Integers  go to state 31
+    ID        go to state 32
+
+
+State 51
+
+   83 ID: T_ID '[' Expression ']' .
+
+    $default  reduce using rule 83 (ID)
+
+
+State 52
+
+   32 Term: Term T_OR . Factor
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '|'        shift, and go to state 27
+
+    Factor    go to state 83
+    Integers  go to state 31
+    ID        go to state 32
+
+
+State 53
+
+   31 Term: Term T_AND . Factor
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '|'        shift, and go to state 27
+
+    Factor    go to state 84
+    Integers  go to state 31
+    ID        go to state 32
+
+
+State 54
+
+   35 Term: Term T_LT . Factor
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '|'        shift, and go to state 27
+
+    Factor    go to state 85
+    Integers  go to state 31
+    ID        go to state 32
+
+
+State 55
+
+   34 Term: Term T_LTE . Factor
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '|'        shift, and go to state 27
+
+    Factor    go to state 86
+    Integers  go to state 31
+    ID        go to state 32
+
+
+State 56
+
+   37 Term: Term T_GT . Factor
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '|'        shift, and go to state 27
+
+    Factor    go to state 87
+    Integers  go to state 31
+    ID        go to state 32
+
+
+State 57
+
+   36 Term: Term T_GTE . Factor
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '|'        shift, and go to state 27
+
+    Factor    go to state 88
+    Integers  go to state 31
+    ID        go to state 32
+
+
+State 58
+
+   38 Term: Term T_NOTEQ . Factor
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '|'        shift, and go to state 27
+
+    Factor    go to state 89
+    Integers  go to state 31
+    ID        go to state 32
+
+
+State 59
+
+   33 Term: Term T_EQEQ . Factor
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '|'        shift, and go to state 27
+
+    Factor    go to state 90
+    Integers  go to state 31
+    ID        go to state 32
+
+
+State 60
+
+   29 Term: Term T_FSLASH . Factor
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '|'        shift, and go to state 27
+
+    Factor    go to state 91
+    Integers  go to state 31
+    ID        go to state 32
+
+
+State 61
+
+   28 Term: Term T_TIMES . Factor
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '|'        shift, and go to state 27
+
+    Factor    go to state 92
+    Integers  go to state 31
+    ID        go to state 32
+
+
+State 62
+
+   30 Term: Term '%' . Factor
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '|'        shift, and go to state 27
+
+    Factor    go to state 93
+    Integers  go to state 31
+    ID        go to state 32
+
+
+State 63
+
+   25 Expression: Expression . T_PLUS Term
+   26           | Expression . T_MINUS Term
+   85 ID: T_ADDRESS T_ID '[' Expression . ']'
+
+    T_PLUS   shift, and go to state 49
+    T_MINUS  shift, and go to state 50
+    ']'      shift, and go to state 94
+
+
+State 64
+
+    3 Function: T_PROC ID '(' VariableDeclaration ')' . T_RET VariableType Body
+
+    T_RET  shift, and go to state 95
+
+
+State 65
+
+   70 VariableDeclaration2: VariableDeclaration2 ';' . VariablesDeclaration VariableType
+
+    T_ID       shift, and go to state 4
+    T_ADDRESS  shift, and go to state 5
+    '|'        shift, and go to state 6
+
+    VariablesDeclaration  go to state 96
+    ID                    go to state 38
+
+
+State 66
+
+   63 VariableType: T_BOOL .
+
+    $default  reduce using rule 63 (VariableType)
+
+
+State 67
+
+   65 VariableType: T_CHAR .
+
+    $default  reduce using rule 65 (VariableType)
+
+
+State 68
+
+   61 VariableType: T_INT .
+
+    $default  reduce using rule 61 (VariableType)
+
+
+State 69
+
+   64 VariableType: T_STR . '[' Integers ']'
+
+    '['  shift, and go to state 97
+
+
+State 70
+
+   62 VariableType: T_INTPTR .
+
+    $default  reduce using rule 62 (VariableType)
+
+
+State 71
+
+   66 VariableType: T_CHARPTR .
+
+    $default  reduce using rule 66 (VariableType)
+
+
+State 72
+
+   69 VariableDeclaration2: VariablesDeclaration VariableType .
+
+    $default  reduce using rule 69 (VariableDeclaration2)
+
+
+State 73
+
+   73 VariablesDeclaration: ID ',' . VariablesDeclaration
+
+    T_ID       shift, and go to state 4
+    T_ADDRESS  shift, and go to state 5
+    '|'        shift, and go to state 6
+
+    VariablesDeclaration  go to state 98
+    ID                    go to state 38
+
+
+State 74
+
+   74 VariablesDeclaration: ID ':' .
+
+    $default  reduce using rule 74 (VariablesDeclaration)
+
+
+State 75
+
+    2 Function: Function T_PROC ID '(' VariableDeclaration . ')' T_RET VariableType Body
+
+    ')'  shift, and go to state 99
+
+
+State 76
+
+   40 Factor: '(' Expression ')' .
+
+    $default  reduce using rule 40 (Factor)
+
+
+State 77
+
+   54 Integers: '|' T_INTBIN '|' .
+
+    $default  reduce using rule 54 (Integers)
+
+
+State 78
+
+   56 Integers: '|' T_INTOCT '|' .
+
+    $default  reduce using rule 56 (Integers)
+
+
+State 79
+
+   58 Integers: '|' T_INTDEC '|' .
+
+    $default  reduce using rule 58 (Integers)
+
+
+State 80
+
+   60 Integers: '|' T_INTHEX '|' .
+
+    $default  reduce using rule 60 (Integers)
+
+
+State 81
+
+   25 Expression: Expression T_PLUS Term .
+   28 Term: Term . T_TIMES Factor
+   29     | Term . T_FSLASH Factor
+   30     | Term . '%' Factor
+   31     | Term . T_AND Factor
+   32     | Term . T_OR Factor
+   33     | Term . T_EQEQ Factor
+   34     | Term . T_LTE Factor
+   35     | Term . T_LT Factor
+   36     | Term . T_GTE Factor
+   37     | Term . T_GT Factor
+   38     | Term . T_NOTEQ Factor
+
+    T_OR      shift, and go to state 52
+    T_AND     shift, and go to state 53
+    T_LT      shift, and go to state 54
+    T_LTE     shift, and go to state 55
+    T_GT      shift, and go to state 56
+    T_GTE     shift, and go to state 57
+    T_NOTEQ   shift, and go to state 58
+    T_EQEQ    shift, and go to state 59
+    T_FSLASH  shift, and go to state 60
+    T_TIMES   shift, and go to state 61
+    '%'       shift, and go to state 62
+
+    $default  reduce using rule 25 (Expression)
+
+
+State 82
+
+   26 Expression: Expression T_MINUS Term .
+   28 Term: Term . T_TIMES Factor
+   29     | Term . T_FSLASH Factor
+   30     | Term . '%' Factor
+   31     | Term . T_AND Factor
+   32     | Term . T_OR Factor
+   33     | Term . T_EQEQ Factor
+   34     | Term . T_LTE Factor
+   35     | Term . T_LT Factor
+   36     | Term . T_GTE Factor
+   37     | Term . T_GT Factor
+   38     | Term . T_NOTEQ Factor
+
+    T_OR      shift, and go to state 52
+    T_AND     shift, and go to state 53
+    T_LT      shift, and go to state 54
+    T_LTE     shift, and go to state 55
+    T_GT      shift, and go to state 56
+    T_GTE     shift, and go to state 57
+    T_NOTEQ   shift, and go to state 58
+    T_EQEQ    shift, and go to state 59
+    T_FSLASH  shift, and go to state 60
+    T_TIMES   shift, and go to state 61
+    '%'       shift, and go to state 62
+
+    $default  reduce using rule 26 (Expression)
+
+
+State 83
+
+   32 Term: Term T_OR Factor .
+
+    $default  reduce using rule 32 (Term)
+
+
+State 84
+
+   31 Term: Term T_AND Factor .
+
+    $default  reduce using rule 31 (Term)
+
+
+State 85
+
+   35 Term: Term T_LT Factor .
+
+    $default  reduce using rule 35 (Term)
+
+
+State 86
+
+   34 Term: Term T_LTE Factor .
+
+    $default  reduce using rule 34 (Term)
+
+
+State 87
+
+   37 Term: Term T_GT Factor .
+
+    $default  reduce using rule 37 (Term)
+
+
+State 88
+
+   36 Term: Term T_GTE Factor .
+
+    $default  reduce using rule 36 (Term)
+
+
+State 89
+
+   38 Term: Term T_NOTEQ Factor .
+
+    $default  reduce using rule 38 (Term)
+
+
+State 90
+
+   33 Term: Term T_EQEQ Factor .
+
+    $default  reduce using rule 33 (Term)
+
+
+State 91
+
+   29 Term: Term T_FSLASH Factor .
+
+    $default  reduce using rule 29 (Term)
+
+
+State 92
+
+   28 Term: Term T_TIMES Factor .
+
+    $default  reduce using rule 28 (Term)
+
+
+State 93
+
+   30 Term: Term '%' Factor .
+
+    $default  reduce using rule 30 (Term)
+
+
+State 94
+
+   85 ID: T_ADDRESS T_ID '[' Expression ']' .
+
+    $default  reduce using rule 85 (ID)
+
+
+State 95
+
+    3 Function: T_PROC ID '(' VariableDeclaration ')' T_RET . VariableType Body
+
+    T_BOOL     shift, and go to state 66
+    T_CHAR     shift, and go to state 67
+    T_INT      shift, and go to state 68
+    T_STR      shift, and go to state 69
+    T_INTPTR   shift, and go to state 70
+    T_CHARPTR  shift, and go to state 71
+
+    VariableType  go to state 100
+
+
+State 96
+
+   70 VariableDeclaration2: VariableDeclaration2 ';' VariablesDeclaration . VariableType
+
+    T_BOOL     shift, and go to state 66
+    T_CHAR     shift, and go to state 67
+    T_INT      shift, and go to state 68
+    T_STR      shift, and go to state 69
+    T_INTPTR   shift, and go to state 70
+    T_CHARPTR  shift, and go to state 71
+
+    VariableType  go to state 101
+
+
+State 97
+
+   64 VariableType: T_STR '[' . Integers ']'
+
+    T_INTBIN  shift, and go to state 22
+    T_INTOCT  shift, and go to state 23
+    T_INTDEC  shift, and go to state 24
+    T_INTHEX  shift, and go to state 25
+    '|'       shift, and go to state 102
+
+    Integers  go to state 103
+
+
+State 98
+
+   73 VariablesDeclaration: ID ',' VariablesDeclaration .
+
+    $default  reduce using rule 73 (VariablesDeclaration)
+
+
+State 99
+
+    2 Function: Function T_PROC ID '(' VariableDeclaration ')' . T_RET VariableType Body
+
+    T_RET  shift, and go to state 104
+
+
+State 100
+
+    3 Function: T_PROC ID '(' VariableDeclaration ')' T_RET VariableType . Body
+
+    '{'  shift, and go to state 105
+
+    Body  go to state 106
+
+
+State 101
+
+   70 VariableDeclaration2: VariableDeclaration2 ';' VariablesDeclaration VariableType .
+
+    $default  reduce using rule 70 (VariableDeclaration2)
+
+
+State 102
+
+   54 Integers: '|' . T_INTBIN '|'
+   56         | '|' . T_INTOCT '|'
+   58         | '|' . T_INTDEC '|'
+   60         | '|' . T_INTHEX '|'
+
+    T_INTBIN  shift, and go to state 45
+    T_INTOCT  shift, and go to state 46
+    T_INTDEC  shift, and go to state 47
+    T_INTHEX  shift, and go to state 48
+
+
+State 103
+
+   64 VariableType: T_STR '[' Integers . ']'
+
+    ']'  shift, and go to state 107
+
+
+State 104
+
+    2 Function: Function T_PROC ID '(' VariableDeclaration ')' T_RET . VariableType Body
+
+    T_BOOL     shift, and go to state 66
+    T_CHAR     shift, and go to state 67
+    T_INT      shift, and go to state 68
+    T_STR      shift, and go to state 69
+    T_INTPTR   shift, and go to state 70
+    T_CHARPTR  shift, and go to state 71
+
+    VariableType  go to state 108
+
+
+State 105
+
+    4 Body: '{' . Function VariableDeclaration3 Body2 Return '}'
+    5     | '{' . Function Body2 Return '}'
+    6     | '{' . Function VariableDeclaration3 Return '}'
+    7     | '{' . Function Return '}'
+    8     | '{' . VariableDeclaration3 Return '}'
+    9     | '{' . VariableDeclaration3 Body2 Return '}'
+   10     | '{' . Body2 Return '}'
+   11     | '{' . Return '}'
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_IF       shift, and go to state 109
+    T_WHILE    shift, and go to state 110
+    T_VAR      shift, and go to state 111
+    T_PROC     shift, and go to state 1
+    T_RET      shift, and go to state 112
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '{'        shift, and go to state 113
+    '|'        shift, and go to state 27
+
+    Function              go to state 114
+    Body2                 go to state 115
+    Body3                 go to state 116
+    Statement             go to state 117
+    Expression            go to state 118
+    Term                  go to state 29
+    Factor                go to state 30
+    Assignment            go to state 119
+    Integers              go to state 31
+    VariableDeclaration3  go to state 120
+    IfWhile               go to state 121
+    ID                    go to state 122
+    FunctionStatement     go to state 123
+    Return                go to state 124
+
+
+State 106
+
+    3 Function: T_PROC ID '(' VariableDeclaration ')' T_RET VariableType Body .
+
+    $default  reduce using rule 3 (Function)
+
+
+State 107
+
+   64 VariableType: T_STR '[' Integers ']' .
+
+    $default  reduce using rule 64 (VariableType)
+
+
+State 108
+
+    2 Function: Function T_PROC ID '(' VariableDeclaration ')' T_RET VariableType . Body
+
+    '{'  shift, and go to state 105
+
+    Body  go to state 125
+
+
+State 109
+
+   75 IfWhile: T_IF . '(' Expression ')' '{' Body2 '}'
+   76        | T_IF . '(' Expression ')' '{' '}'
+   77        | T_IF . '(' Expression ')' '{' Body2 '}' Else
+
+    '('  shift, and go to state 126
+
+
+State 110
+
+   78 IfWhile: T_WHILE . '(' Expression ')' '{' '}'
+   79        | T_WHILE . '(' Expression ')' '{' Body2 '}'
+
+    '('  shift, and go to state 127
+
+
+State 111
+
+   71 VariableDeclaration3: T_VAR . VariablesDeclaration VariableType ';'
+
+    T_ID       shift, and go to state 4
+    T_ADDRESS  shift, and go to state 5
+    '|'        shift, and go to state 6
+
+    VariablesDeclaration  go to state 128
+    ID                    go to state 38
+
+
+State 112
+
+   92 Return: T_RET . Expression ';'
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '|'        shift, and go to state 27
+
+    Expression  go to state 129
+    Term        go to state 29
+    Factor      go to state 30
+    Integers    go to state 31
+    ID          go to state 32
+
+
+State 113
+
+   18 Body3: '{' . VariableDeclaration3 Body2 '}'
+   19      | '{' . VariableDeclaration3 '}'
+   20      | '{' . Body2 '}'
+   21      | '{' . '}'
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_IF       shift, and go to state 109
+    T_WHILE    shift, and go to state 110
+    T_VAR      shift, and go to state 111
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '{'        shift, and go to state 113
+    '}'        shift, and go to state 130
+    '|'        shift, and go to state 27
+
+    Body2                 go to state 131
+    Body3                 go to state 116
+    Statement             go to state 117
+    Expression            go to state 118
+    Term                  go to state 29
+    Factor                go to state 30
+    Assignment            go to state 119
+    Integers              go to state 31
+    VariableDeclaration3  go to state 132
+    IfWhile               go to state 121
+    ID                    go to state 122
+    FunctionStatement     go to state 123
+
+
+State 114
+
+    2 Function: Function . T_PROC ID '(' VariableDeclaration ')' T_RET VariableType Body
+    4 Body: '{' Function . VariableDeclaration3 Body2 Return '}'
+    5     | '{' Function . Body2 Return '}'
+    6     | '{' Function . VariableDeclaration3 Return '}'
+    7     | '{' Function . Return '}'
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_IF       shift, and go to state 109
+    T_WHILE    shift, and go to state 110
+    T_VAR      shift, and go to state 111
+    T_PROC     shift, and go to state 9
+    T_RET      shift, and go to state 112
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '{'        shift, and go to state 113
+    '|'        shift, and go to state 27
+
+    Body2                 go to state 133
+    Body3                 go to state 116
+    Statement             go to state 117
+    Expression            go to state 118
+    Term                  go to state 29
+    Factor                go to state 30
+    Assignment            go to state 119
+    Integers              go to state 31
+    VariableDeclaration3  go to state 134
+    IfWhile               go to state 121
+    ID                    go to state 122
+    FunctionStatement     go to state 123
+    Return                go to state 135
+
+
+State 115
+
+   10 Body: '{' Body2 . Return '}'
+
+    T_RET  shift, and go to state 112
+
+    Return  go to state 136
+
+
+State 116
+
+   16 Body2: Body3 . Body2
+   17      | Body3 .
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_IF       shift, and go to state 109
+    T_WHILE    shift, and go to state 110
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '{'        shift, and go to state 113
+    '|'        shift, and go to state 27
+
+    $default  reduce using rule 17 (Body2)
+
+    Body2              go to state 137
+    Body3              go to state 116
+    Statement          go to state 117
+    Expression         go to state 118
+    Term               go to state 29
+    Factor             go to state 30
+    Assignment         go to state 119
+    Integers           go to state 31
+    IfWhile            go to state 121
+    ID                 go to state 122
+    FunctionStatement  go to state 123
+
+
+State 117
+
+   14 Body2: Statement . Body2
+   15      | Statement .
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_IF       shift, and go to state 109
+    T_WHILE    shift, and go to state 110
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '{'        shift, and go to state 113
+    '|'        shift, and go to state 27
+
+    $default  reduce using rule 15 (Body2)
+
+    Body2              go to state 138
+    Body3              go to state 116
+    Statement          go to state 117
+    Expression         go to state 118
+    Term               go to state 29
+    Factor             go to state 30
+    Assignment         go to state 119
+    Integers           go to state 31
+    IfWhile            go to state 121
+    ID                 go to state 122
+    FunctionStatement  go to state 123
+
+
+State 118
+
+   22 Statement: Expression . ';'
+   25 Expression: Expression . T_PLUS Term
+   26           | Expression . T_MINUS Term
+
+    T_PLUS   shift, and go to state 49
+    T_MINUS  shift, and go to state 50
+    ';'      shift, and go to state 139
+
+
+State 119
+
+   23 Statement: Assignment . ';'
+
+    ';'  shift, and go to state 140
+
+
+State 120
+
+    8 Body: '{' VariableDeclaration3 . Return '}'
+    9     | '{' VariableDeclaration3 . Body2 Return '}'
+   72 VariableDeclaration3: VariableDeclaration3 . T_VAR VariablesDeclaration VariableType ';'
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_IF       shift, and go to state 109
+    T_WHILE    shift, and go to state 110
+    T_VAR      shift, and go to state 141
+    T_RET      shift, and go to state 112
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '{'        shift, and go to state 113
+    '|'        shift, and go to state 27
+
+    Body2              go to state 142
+    Body3              go to state 116
+    Statement          go to state 117
+    Expression         go to state 118
+    Term               go to state 29
+    Factor             go to state 30
+    Assignment         go to state 119
+    Integers           go to state 31
+    IfWhile            go to state 121
+    ID                 go to state 122
+    FunctionStatement  go to state 123
+    Return             go to state 143
+
+
+State 121
+
+   12 Body2: IfWhile . Body2
+   13      | IfWhile .
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_IF       shift, and go to state 109
+    T_WHILE    shift, and go to state 110
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '{'        shift, and go to state 113
+    '|'        shift, and go to state 27
+
+    $default  reduce using rule 13 (Body2)
+
+    Body2              go to state 144
+    Body3              go to state 116
+    Statement          go to state 117
+    Expression         go to state 118
+    Term               go to state 29
+    Factor             go to state 30
+    Assignment         go to state 119
+    Integers           go to state 31
+    IfWhile            go to state 121
+    ID                 go to state 122
+    FunctionStatement  go to state 123
+
+
+State 122
+
+   48 Factor: ID .
+   50 Assignment: ID . T_EQ Expression
+   51           | ID . T_EQ T_STRING
+   52           | ID . T_EQ T_CHARACTER
+   86 FunctionStatement: ID . T_EQ FunctionCall
+
+    T_EQ  shift, and go to state 145
+
+    $default  reduce using rule 48 (Factor)
+
+
+State 123
+
+   24 Statement: FunctionStatement . ';'
+
+    ';'  shift, and go to state 146
+
+
+State 124
+
+   11 Body: '{' Return . '}'
+
+    '}'  shift, and go to state 147
+
+
+State 125
+
+    2 Function: Function T_PROC ID '(' VariableDeclaration ')' T_RET VariableType Body .
+
+    $default  reduce using rule 2 (Function)
+
+
+State 126
+
+   75 IfWhile: T_IF '(' . Expression ')' '{' Body2 '}'
+   76        | T_IF '(' . Expression ')' '{' '}'
+   77        | T_IF '(' . Expression ')' '{' Body2 '}' Else
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '|'        shift, and go to state 27
+
+    Expression  go to state 148
+    Term        go to state 29
+    Factor      go to state 30
+    Integers    go to state 31
+    ID          go to state 32
+
+
+State 127
+
+   78 IfWhile: T_WHILE '(' . Expression ')' '{' '}'
+   79        | T_WHILE '(' . Expression ')' '{' Body2 '}'
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '|'        shift, and go to state 27
+
+    Expression  go to state 149
+    Term        go to state 29
+    Factor      go to state 30
+    Integers    go to state 31
+    ID          go to state 32
+
+
+State 128
+
+   71 VariableDeclaration3: T_VAR VariablesDeclaration . VariableType ';'
+
+    T_BOOL     shift, and go to state 66
+    T_CHAR     shift, and go to state 67
+    T_INT      shift, and go to state 68
+    T_STR      shift, and go to state 69
+    T_INTPTR   shift, and go to state 70
+    T_CHARPTR  shift, and go to state 71
+
+    VariableType  go to state 150
+
+
+State 129
+
+   25 Expression: Expression . T_PLUS Term
+   26           | Expression . T_MINUS Term
+   92 Return: T_RET Expression . ';'
+
+    T_PLUS   shift, and go to state 49
+    T_MINUS  shift, and go to state 50
+    ';'      shift, and go to state 151
+
+
+State 130
+
+   21 Body3: '{' '}' .
+
+    $default  reduce using rule 21 (Body3)
+
+
+State 131
+
+   20 Body3: '{' Body2 . '}'
+
+    '}'  shift, and go to state 152
+
+
+State 132
+
+   18 Body3: '{' VariableDeclaration3 . Body2 '}'
+   19      | '{' VariableDeclaration3 . '}'
+   72 VariableDeclaration3: VariableDeclaration3 . T_VAR VariablesDeclaration VariableType ';'
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_IF       shift, and go to state 109
+    T_WHILE    shift, and go to state 110
+    T_VAR      shift, and go to state 141
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '{'        shift, and go to state 113
+    '}'        shift, and go to state 153
+    '|'        shift, and go to state 27
+
+    Body2              go to state 154
+    Body3              go to state 116
+    Statement          go to state 117
+    Expression         go to state 118
+    Term               go to state 29
+    Factor             go to state 30
+    Assignment         go to state 119
+    Integers           go to state 31
+    IfWhile            go to state 121
+    ID                 go to state 122
+    FunctionStatement  go to state 123
+
+
+State 133
+
+    5 Body: '{' Function Body2 . Return '}'
+
+    T_RET  shift, and go to state 112
+
+    Return  go to state 155
+
+
+State 134
+
+    4 Body: '{' Function VariableDeclaration3 . Body2 Return '}'
+    6     | '{' Function VariableDeclaration3 . Return '}'
+   72 VariableDeclaration3: VariableDeclaration3 . T_VAR VariablesDeclaration VariableType ';'
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_IF       shift, and go to state 109
+    T_WHILE    shift, and go to state 110
+    T_VAR      shift, and go to state 141
+    T_RET      shift, and go to state 112
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '{'        shift, and go to state 113
+    '|'        shift, and go to state 27
+
+    Body2              go to state 156
+    Body3              go to state 116
+    Statement          go to state 117
+    Expression         go to state 118
+    Term               go to state 29
+    Factor             go to state 30
+    Assignment         go to state 119
+    Integers           go to state 31
+    IfWhile            go to state 121
+    ID                 go to state 122
+    FunctionStatement  go to state 123
+    Return             go to state 157
+
+
+State 135
+
+    7 Body: '{' Function Return . '}'
+
+    '}'  shift, and go to state 158
+
+
+State 136
+
+   10 Body: '{' Body2 Return . '}'
+
+    '}'  shift, and go to state 159
+
+
+State 137
+
+   16 Body2: Body3 Body2 .
+
+    $default  reduce using rule 16 (Body2)
+
+
+State 138
+
+   14 Body2: Statement Body2 .
+
+    $default  reduce using rule 14 (Body2)
+
+
+State 139
+
+   22 Statement: Expression ';' .
+
+    $default  reduce using rule 22 (Statement)
+
+
+State 140
+
+   23 Statement: Assignment ';' .
+
+    $default  reduce using rule 23 (Statement)
+
+
+State 141
+
+   72 VariableDeclaration3: VariableDeclaration3 T_VAR . VariablesDeclaration VariableType ';'
+
+    T_ID       shift, and go to state 4
+    T_ADDRESS  shift, and go to state 5
+    '|'        shift, and go to state 6
+
+    VariablesDeclaration  go to state 160
+    ID                    go to state 38
+
+
+State 142
+
+    9 Body: '{' VariableDeclaration3 Body2 . Return '}'
+
+    T_RET  shift, and go to state 112
+
+    Return  go to state 161
+
+
+State 143
+
+    8 Body: '{' VariableDeclaration3 Return . '}'
+
+    '}'  shift, and go to state 162
+
+
+State 144
+
+   12 Body2: IfWhile Body2 .
+
+    $default  reduce using rule 12 (Body2)
+
+
+State 145
+
+   50 Assignment: ID T_EQ . Expression
+   51           | ID T_EQ . T_STRING
+   52           | ID T_EQ . T_CHARACTER
+   86 FunctionStatement: ID T_EQ . FunctionCall
+
+    T_PLUS       shift, and go to state 15
+    T_MINUS      shift, and go to state 16
+    T_ID         shift, and go to state 4
+    T_STRING     shift, and go to state 163
+    T_CHARACTER  shift, and go to state 164
+    T_NOT        shift, and go to state 17
+    T_NULL       shift, and go to state 18
+    T_ADDRESS    shift, and go to state 5
+    T_DEREF      shift, and go to state 19
+    T_TRUE       shift, and go to state 20
+    T_FALSE      shift, and go to state 21
+    T_INTBIN     shift, and go to state 22
+    T_INTOCT     shift, and go to state 23
+    T_INTDEC     shift, and go to state 24
+    T_INTHEX     shift, and go to state 25
+    '('          shift, and go to state 26
+    '|'          shift, and go to state 27
+
+    Expression    go to state 165
+    Term          go to state 29
+    Factor        go to state 30
+    Integers      go to state 31
+    ID            go to state 166
+    FunctionCall  go to state 167
+
+
+State 146
+
+   24 Statement: FunctionStatement ';' .
+
+    $default  reduce using rule 24 (Statement)
+
+
+State 147
+
+   11 Body: '{' Return '}' .
+
+    $default  reduce using rule 11 (Body)
+
+
+State 148
+
+   25 Expression: Expression . T_PLUS Term
+   26           | Expression . T_MINUS Term
+   75 IfWhile: T_IF '(' Expression . ')' '{' Body2 '}'
+   76        | T_IF '(' Expression . ')' '{' '}'
+   77        | T_IF '(' Expression . ')' '{' Body2 '}' Else
+
+    T_PLUS   shift, and go to state 49
+    T_MINUS  shift, and go to state 50
+    ')'      shift, and go to state 168
+
+
+State 149
+
+   25 Expression: Expression . T_PLUS Term
+   26           | Expression . T_MINUS Term
+   78 IfWhile: T_WHILE '(' Expression . ')' '{' '}'
+   79        | T_WHILE '(' Expression . ')' '{' Body2 '}'
+
+    T_PLUS   shift, and go to state 49
+    T_MINUS  shift, and go to state 50
+    ')'      shift, and go to state 169
+
+
+State 150
+
+   71 VariableDeclaration3: T_VAR VariablesDeclaration VariableType . ';'
+
+    ';'  shift, and go to state 170
+
+
+State 151
+
+   92 Return: T_RET Expression ';' .
+
+    $default  reduce using rule 92 (Return)
+
+
+State 152
+
+   20 Body3: '{' Body2 '}' .
+
+    $default  reduce using rule 20 (Body3)
+
+
+State 153
+
+   19 Body3: '{' VariableDeclaration3 '}' .
+
+    $default  reduce using rule 19 (Body3)
+
+
+State 154
+
+   18 Body3: '{' VariableDeclaration3 Body2 . '}'
+
+    '}'  shift, and go to state 171
+
+
+State 155
+
+    5 Body: '{' Function Body2 Return . '}'
+
+    '}'  shift, and go to state 172
+
+
+State 156
+
+    4 Body: '{' Function VariableDeclaration3 Body2 . Return '}'
+
+    T_RET  shift, and go to state 112
+
+    Return  go to state 173
+
+
+State 157
+
+    6 Body: '{' Function VariableDeclaration3 Return . '}'
+
+    '}'  shift, and go to state 174
+
+
+State 158
+
+    7 Body: '{' Function Return '}' .
+
+    $default  reduce using rule 7 (Body)
+
+
+State 159
+
+   10 Body: '{' Body2 Return '}' .
+
+    $default  reduce using rule 10 (Body)
+
+
+State 160
+
+   72 VariableDeclaration3: VariableDeclaration3 T_VAR VariablesDeclaration . VariableType ';'
+
+    T_BOOL     shift, and go to state 66
+    T_CHAR     shift, and go to state 67
+    T_INT      shift, and go to state 68
+    T_STR      shift, and go to state 69
+    T_INTPTR   shift, and go to state 70
+    T_CHARPTR  shift, and go to state 71
+
+    VariableType  go to state 175
+
+
+State 161
+
+    9 Body: '{' VariableDeclaration3 Body2 Return . '}'
+
+    '}'  shift, and go to state 176
+
+
+State 162
+
+    8 Body: '{' VariableDeclaration3 Return '}' .
+
+    $default  reduce using rule 8 (Body)
+
+
+State 163
+
+   51 Assignment: ID T_EQ T_STRING .
+
+    $default  reduce using rule 51 (Assignment)
+
+
+State 164
+
+   52 Assignment: ID T_EQ T_CHARACTER .
+
+    $default  reduce using rule 52 (Assignment)
+
+
+State 165
+
+   25 Expression: Expression . T_PLUS Term
+   26           | Expression . T_MINUS Term
+   50 Assignment: ID T_EQ Expression .
+
+    T_PLUS   shift, and go to state 49
+    T_MINUS  shift, and go to state 50
+
+    $default  reduce using rule 50 (Assignment)
+
+
+State 166
+
+   48 Factor: ID .
+   87 FunctionCall: ID . '(' FunctionExpression1 ')'
+
+    '('  shift, and go to state 177
+
+    $default  reduce using rule 48 (Factor)
+
+
+State 167
+
+   86 FunctionStatement: ID T_EQ FunctionCall .
+
+    $default  reduce using rule 86 (FunctionStatement)
+
+
+State 168
+
+   75 IfWhile: T_IF '(' Expression ')' . '{' Body2 '}'
+   76        | T_IF '(' Expression ')' . '{' '}'
+   77        | T_IF '(' Expression ')' . '{' Body2 '}' Else
+
+    '{'  shift, and go to state 178
+
+
+State 169
+
+   78 IfWhile: T_WHILE '(' Expression ')' . '{' '}'
+   79        | T_WHILE '(' Expression ')' . '{' Body2 '}'
+
+    '{'  shift, and go to state 179
+
+
+State 170
+
+   71 VariableDeclaration3: T_VAR VariablesDeclaration VariableType ';' .
+
+    $default  reduce using rule 71 (VariableDeclaration3)
+
+
+State 171
+
+   18 Body3: '{' VariableDeclaration3 Body2 '}' .
+
+    $default  reduce using rule 18 (Body3)
+
+
+State 172
+
+    5 Body: '{' Function Body2 Return '}' .
+
+    $default  reduce using rule 5 (Body)
+
+
+State 173
+
+    4 Body: '{' Function VariableDeclaration3 Body2 Return . '}'
+
+    '}'  shift, and go to state 180
+
+
+State 174
+
+    6 Body: '{' Function VariableDeclaration3 Return '}' .
+
+    $default  reduce using rule 6 (Body)
+
+
+State 175
+
+   72 VariableDeclaration3: VariableDeclaration3 T_VAR VariablesDeclaration VariableType . ';'
+
+    ';'  shift, and go to state 181
+
+
+State 176
+
+    9 Body: '{' VariableDeclaration3 Body2 Return '}' .
+
+    $default  reduce using rule 9 (Body)
+
+
+State 177
+
+   87 FunctionCall: ID '(' . FunctionExpression1 ')'
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '|'        shift, and go to state 27
+
+    $default  reduce using rule 89 (FunctionExpression1)
+
+    Expression           go to state 182
+    Term                 go to state 29
+    Factor               go to state 30
+    Integers             go to state 31
+    ID                   go to state 32
+    FunctionExpression1  go to state 183
+    FunctionExpression   go to state 184
+
+
+State 178
+
+   75 IfWhile: T_IF '(' Expression ')' '{' . Body2 '}'
+   76        | T_IF '(' Expression ')' '{' . '}'
+   77        | T_IF '(' Expression ')' '{' . Body2 '}' Else
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_IF       shift, and go to state 109
+    T_WHILE    shift, and go to state 110
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '{'        shift, and go to state 113
+    '}'        shift, and go to state 185
+    '|'        shift, and go to state 27
+
+    Body2              go to state 186
+    Body3              go to state 116
+    Statement          go to state 117
+    Expression         go to state 118
+    Term               go to state 29
+    Factor             go to state 30
+    Assignment         go to state 119
+    Integers           go to state 31
+    IfWhile            go to state 121
+    ID                 go to state 122
+    FunctionStatement  go to state 123
+
+
+State 179
+
+   78 IfWhile: T_WHILE '(' Expression ')' '{' . '}'
+   79        | T_WHILE '(' Expression ')' '{' . Body2 '}'
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_IF       shift, and go to state 109
+    T_WHILE    shift, and go to state 110
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '{'        shift, and go to state 113
+    '}'        shift, and go to state 187
+    '|'        shift, and go to state 27
+
+    Body2              go to state 188
+    Body3              go to state 116
+    Statement          go to state 117
+    Expression         go to state 118
+    Term               go to state 29
+    Factor             go to state 30
+    Assignment         go to state 119
+    Integers           go to state 31
+    IfWhile            go to state 121
+    ID                 go to state 122
+    FunctionStatement  go to state 123
+
+
+State 180
+
+    4 Body: '{' Function VariableDeclaration3 Body2 Return '}' .
+
+    $default  reduce using rule 4 (Body)
+
+
+State 181
+
+   72 VariableDeclaration3: VariableDeclaration3 T_VAR VariablesDeclaration VariableType ';' .
+
+    $default  reduce using rule 72 (VariableDeclaration3)
+
+
+State 182
+
+   25 Expression: Expression . T_PLUS Term
+   26           | Expression . T_MINUS Term
+   90 FunctionExpression: Expression . ',' FunctionExpression
+   91                   | Expression .
+
+    T_PLUS   shift, and go to state 49
+    T_MINUS  shift, and go to state 50
+    ','      shift, and go to state 189
+
+    $default  reduce using rule 91 (FunctionExpression)
+
+
+State 183
+
+   87 FunctionCall: ID '(' FunctionExpression1 . ')'
+
+    ')'  shift, and go to state 190
+
+
+State 184
+
+   88 FunctionExpression1: FunctionExpression .
+
+    $default  reduce using rule 88 (FunctionExpression1)
+
+
+State 185
+
+   76 IfWhile: T_IF '(' Expression ')' '{' '}' .
+
+    $default  reduce using rule 76 (IfWhile)
+
+
+State 186
+
+   75 IfWhile: T_IF '(' Expression ')' '{' Body2 . '}'
+   77        | T_IF '(' Expression ')' '{' Body2 . '}' Else
+
+    '}'  shift, and go to state 191
+
+
+State 187
+
+   78 IfWhile: T_WHILE '(' Expression ')' '{' '}' .
+
+    $default  reduce using rule 78 (IfWhile)
+
+
+State 188
+
+   79 IfWhile: T_WHILE '(' Expression ')' '{' Body2 . '}'
+
+    '}'  shift, and go to state 192
+
+
+State 189
+
+   90 FunctionExpression: Expression ',' . FunctionExpression
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '|'        shift, and go to state 27
+
+    Expression          go to state 182
+    Term                go to state 29
+    Factor              go to state 30
+    Integers            go to state 31
+    ID                  go to state 32
+    FunctionExpression  go to state 193
+
+
+State 190
+
+   87 FunctionCall: ID '(' FunctionExpression1 ')' .
+
+    $default  reduce using rule 87 (FunctionCall)
+
+
+State 191
+
+   75 IfWhile: T_IF '(' Expression ')' '{' Body2 '}' .
+   77        | T_IF '(' Expression ')' '{' Body2 '}' . Else
+
+    T_ELSE  shift, and go to state 194
+
+    $default  reduce using rule 75 (IfWhile)
+
+    Else  go to state 195
+
+
+State 192
+
+   79 IfWhile: T_WHILE '(' Expression ')' '{' Body2 '}' .
+
+    $default  reduce using rule 79 (IfWhile)
+
+
+State 193
+
+   90 FunctionExpression: Expression ',' FunctionExpression .
+
+    $default  reduce using rule 90 (FunctionExpression)
+
+
+State 194
+
+   80 Else: T_ELSE . '{' Body2 '}'
+
+    '{'  shift, and go to state 196
+
+
+State 195
+
+   77 IfWhile: T_IF '(' Expression ')' '{' Body2 '}' Else .
+
+    $default  reduce using rule 77 (IfWhile)
+
+
+State 196
+
+   80 Else: T_ELSE '{' . Body2 '}'
+
+    T_PLUS     shift, and go to state 15
+    T_MINUS    shift, and go to state 16
+    T_ID       shift, and go to state 4
+    T_NOT      shift, and go to state 17
+    T_IF       shift, and go to state 109
+    T_WHILE    shift, and go to state 110
+    T_NULL     shift, and go to state 18
+    T_ADDRESS  shift, and go to state 5
+    T_DEREF    shift, and go to state 19
+    T_TRUE     shift, and go to state 20
+    T_FALSE    shift, and go to state 21
+    T_INTBIN   shift, and go to state 22
+    T_INTOCT   shift, and go to state 23
+    T_INTDEC   shift, and go to state 24
+    T_INTHEX   shift, and go to state 25
+    '('        shift, and go to state 26
+    '{'        shift, and go to state 113
+    '|'        shift, and go to state 27
+
+    Body2              go to state 197
+    Body3              go to state 116
+    Statement          go to state 117
+    Expression         go to state 118
+    Term               go to state 29
+    Factor             go to state 30
+    Assignment         go to state 119
+    Integers           go to state 31
+    IfWhile            go to state 121
+    ID                 go to state 122
+    FunctionStatement  go to state 123
+
+
+State 197
+
+   80 Else: T_ELSE '{' Body2 . '}'
+
+    '}'  shift, and go to state 198
+
+
+State 198
+
+   80 Else: T_ELSE '{' Body2 '}' .
+
+    $default  reduce using rule 80 (Else)

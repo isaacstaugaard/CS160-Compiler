@@ -1,0 +1,191 @@
+%{
+    #include <stdio.h>
+    #include <stdlib.h>
+    #define YYDEBUG 1
+
+    int yylex(void);
+    void yyerror(const char *);
+%}
+
+/* Enables verbose error messages */
+%error-verbose
+
+/** WRITE ME:
+ *  - Put all your token definitions here
+ *  - Put all your type definitions here
+ *  - Put all your precedence/associativity rules here
+ */
+%left T_OR T_AND T_LT T_LTE T_GT T_GTE T_NOTEQ T_EQEQ T_PLUS T_MINUS
+
+%left T_ID T_STRING T_CHARACTER
+
+%right T_NOT
+
+%token T_BOOL T_CHAR T_INT T_STR T_INTPTR T_CHARPTR T_IF T_ELSE T_WHILE
+%token T_VAR T_PROC T_RET T_NULL T_AND T_FSLASH T_EQ T_EQEQ T_GT T_GTE
+%token T_LT T_LTE T_NOT T_NOTEQ T_OR T_ADDRESS T_DEREF T_TRUE T_FALSE
+%token T_ID T_INTBIN T_INTOCT T_INTDEC T_INTHEX T_STRING T_CHARACTER
+%token T_PLUS T_MINUS T_TIMES
+
+%start Start
+%%
+
+/** WRITE ME:
+ *  This is the language from Project 1. You need to put the productions for
+ *  the grammar for the language for this project here.
+ */
+
+Start:         Function { printf("Parsed the file with no errors!\n"); }
+              ;
+
+Function:     Function T_PROC ID '(' VariableDeclaration ')' T_RET VariableType Body
+	      | T_PROC ID '(' VariableDeclaration ')' T_RET VariableType Body
+	      ;
+
+Body:         '{' Function VariableDeclaration3 Body2 Return '}'
+	      | '{' Function Body2 Return '}'
+	      | '{' Function VariableDeclaration3 Return '}'
+	      | '{' Function Return '}'
+	      | '{' VariableDeclaration3 Return '}'
+	      | '{' VariableDeclaration3 Body2 Return '}'
+	      | '{' Body2 Return '}'
+	      | '{' Return '}'
+	      ;
+
+Body2:        IfWhile Body2
+	      | IfWhile
+              | Statement Body2
+	      | Statement 
+	      | Body3 Body2
+	      | Body3
+	      ;
+
+Body3:        '{' VariableDeclaration3 Body2 '}'
+	      | '{' VariableDeclaration3 '}'
+	      | '{' Body2 '}'
+	      | '{''}'
+	      ;
+
+Statement:    Expression ';'
+              | Assignment ';'
+	      | FunctionStatement ';'
+	      ;
+
+Expression:   Expression T_PLUS Term
+              | Expression T_MINUS Term
+	      | Term
+	      ;
+
+Term:         Term T_TIMES Factor
+              | Term T_FSLASH Factor
+	      | Term '%' Factor
+	      | Term T_AND Factor
+	      | Term T_OR Factor
+	      | Term T_EQEQ Factor
+	      | Term T_LTE Factor
+	      | Term T_LT Factor
+	      | Term T_GTE Factor
+	      | Term T_GT Factor
+	      | Term T_NOTEQ Factor
+	      | Factor
+	      ;
+
+Factor:       '(' Expression ')'
+              | Integers
+	      | T_MINUS Factor
+	      | T_PLUS Factor
+	      | T_DEREF Factor
+	      | T_NOT Factor
+	      | T_FALSE
+	      | T_TRUE
+	      | ID
+	      | T_NULL
+	      ;
+
+Assignment:   ID T_EQ Expression
+              | ID T_EQ T_STRING
+	      | ID T_EQ T_CHARACTER
+	      ;
+
+Integers:     T_INTBIN
+	      | '|' T_INTBIN '|'
+              | T_INTOCT
+	      | '|' T_INTOCT '|'
+	      | T_INTDEC
+	      | '|' T_INTDEC '|'
+	      | T_INTHEX
+	      | '|' T_INTHEX '|'
+	      ;
+
+VariableType: T_INT
+	      | T_INTPTR
+	      | T_BOOL
+	      | T_STR '[' Integers ']'
+	      | T_CHAR
+	      | T_CHARPTR
+	      ;
+
+VariableDeclaration: VariableDeclaration2
+		     |
+		     ;
+
+VariableDeclaration2: VariablesDeclaration VariableType
+		      | VariableDeclaration2 ';' VariablesDeclaration VariableType
+		      ;
+
+VariableDeclaration3: T_VAR VariablesDeclaration VariableType ';'
+		      | VariableDeclaration3 T_VAR VariablesDeclaration VariableType ';'
+		      ;
+
+VariablesDeclaration: ID ',' VariablesDeclaration
+		      | ID ':'
+		      ;
+
+IfWhile:      T_IF '(' Expression ')' '{' Body2 '}'
+	      | T_IF '(' Expression ')' '{' '}' 
+	      | T_IF '(' Expression ')' '{' Body2 '}' Else
+	      | T_WHILE '(' Expression ')' '{' '}'
+	      | T_WHILE '(' Expression ')' '{' Body2 '}'
+	      ;
+
+Else:         T_ELSE '{' Body2 '}'
+	      ;
+	      
+ID:           T_ID
+	      | '|' T_ID '|'
+              | T_ID '[' Expression ']'
+	      | T_ADDRESS T_ID
+	      | T_ADDRESS T_ID '[' Expression ']'
+	      ;	
+
+FunctionStatement:   ID T_EQ FunctionCall
+		     ;
+
+FunctionCall:        ID '(' FunctionExpression1 ')'
+		     ;
+
+FunctionExpression1: FunctionExpression
+		     |
+		     ;
+
+FunctionExpression:  Expression ',' FunctionExpression
+		     | Expression
+		     ;
+
+Return:              T_RET Expression ';'
+		     ;
+
+
+%%
+
+/** You shall not pass!
+ *  You should not  have to do or edit anything past this.
+ */
+
+extern int yylineno;
+
+void yyerror(const char *s)
+{
+    fprintf(stderr, "%s at line %d\n", s, yylineno);
+    return;
+}

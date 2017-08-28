@@ -1,0 +1,575 @@
+%{
+    #include <cstdio>
+    #include <cstdlib>
+
+
+    #include "ast.hpp"
+    #include "primitive.hpp"
+    #include "symtab.hpp"
+
+    #define YYDEBUG 1
+
+    extern Program_ptr ast;
+    int yylex(void);
+    void yyerror(const char *);
+%}
+
+/* Enables verbose error messages */
+%error-verbose
+
+/** WRITE ME:
+ *  - Put all your token definitions here
+ *  - Put all your type definitions here
+ *  - Put all your precedence/associativity rules here
+ */
+
+%left T_OR T_AND T_LT T_LTE T_GT T_GTE T_NOTEQ T_EQEQ T_PLUS T_MINUS
+
+%left T_ID T_STRING T_CHARACTER
+
+%right T_NOT
+
+
+%token T_BOOL T_CHAR T_INT T_STR T_INTPTR T_CHARPTR T_IF T_ELSE T_WHILE
+%token T_VAR T_PROC T_RET T_NULL T_AND T_FSLASH T_EQ T_EQEQ T_GT T_GTE
+%token T_LT T_LTE T_NOT T_NOTEQ T_OR T_ADDRESS T_DEREF T_TRUE T_FALSE
+%token T_ID T_INTBIN T_INTOCT T_INTDEC T_INTHEX T_STRING T_CHARACTER
+%token T_PLUS T_MINUS T_TIMES
+
+
+%start Start
+
+%%
+
+
+Start:         Function
+	       { ast = new ProgramImpl($1.u_proc_list);
+	       /*printf("Parsed with no errors\n") */;}
+              ;
+
+
+Function:     Function T_PROC ID '(' VariableDeclaration ')' T_RET VariableType Body
+	      { ($1.u_proc_list)->push_back(new ProcImpl($3.u_symname, $5.u_decl_list, $8.u_type, $9.u_procedure_block));
+	      	$$ = $1;
+		/*printf("Function-1 no errors\n");*/ }
+		
+	      | T_PROC ID '(' VariableDeclaration ')' T_RET VariableType Body
+	      { $$.u_proc_list = new std::list<Proc_ptr>;
+	        ($$.u_proc_list)->push_back(new ProcImpl($2.u_symname, $4.u_decl_list, $7.u_type, $8.u_procedure_block));
+		/*printf("Function-2 no errors\n");*/ }
+	      ;
+
+
+Body:         '{' Function VariableDeclaration3 Body2 Return '}'
+	      { $$.u_procedure_block = new Procedure_blockImpl($2.u_proc_list, $3.u_decl_list, $4.u_stat_list, $5.u_return_stat);
+	       /*printf("Body-1 no errors\n");*/ }
+	      
+	      | '{' Function Body2 Return '}'
+	      { $$.u_procedure_block = new Procedure_blockImpl($2.u_proc_list, new std::list<Decl_ptr>, $3.u_stat_list, $4.u_return_stat);
+	       /*printf("Body-2 no errors\n");*/ }
+
+
+ 	      | '{' Function VariableDeclaration3 Return '}'
+	      { $$.u_procedure_block = new Procedure_blockImpl($2.u_proc_list, $3.u_decl_list, new std::list<Stat_ptr>, $4.u_return_stat);
+	       /*printf("Body-3 no errors\n");*/ }
+	      
+	      | '{' Function Return '}'
+	      { $$.u_procedure_block = new Procedure_blockImpl($2.u_proc_list, new std::list<Decl_ptr>, new std::list<Stat_ptr>, $3.u_return_stat);
+	       /*printf("Body-4 no errors\n");*/ }	      
+
+
+	      | '{' VariableDeclaration3 Return '}'
+	      { $$.u_procedure_block = new Procedure_blockImpl(new std::list<Proc_ptr>, $2.u_decl_list, new std::list<Stat_ptr>, $3.u_return_stat);
+	       /*printf("Body-5 no errors\n");*/ }
+
+
+	      | '{' VariableDeclaration3 Body2 Return '}'
+	      { $$.u_procedure_block = new Procedure_blockImpl(new std::list<Proc_ptr>, $2.u_decl_list, $3.u_stat_list, $4.u_return_stat);
+	       /*printf("Body-6 no errors\n");*/ }
+
+
+	      | '{' Body2 Return '}'
+	      { $$.u_procedure_block = new Procedure_blockImpl(new std::list<Proc_ptr>, new std::list<Decl_ptr>, $2.u_stat_list, $3.u_return_stat);
+	       /*printf("Body-7 no errors\n");*/ }
+
+
+	      | '{' Return '}'
+	      { $$.u_procedure_block = new Procedure_blockImpl(new std::list<Proc_ptr>, new std::list<Decl_ptr>, new std::list<Stat_ptr>, $2.u_return_stat);
+	       /*printf("Body-8 no errors\n");*/ }
+	      ;
+
+
+
+
+Body2:        Body2 IfWhile
+	      { ($1.u_stat_list)->push_back($2.u_stat);
+	      	$$ = $1;
+		 /*printf("Body2-1 no errors\n");*/ }
+			      
+	      | IfWhile
+	      { $$.u_stat_list = new std::list<Stat_ptr>;
+	      	($$.u_stat_list)->push_back($1.u_stat);
+		 /*printf("Body2-2 no errors\n");*/ }
+
+
+              | Body2 Statement
+	      { ($1.u_stat_list)->push_back($2.u_stat);
+	      	$$ = $1;
+		 /*printf("Body2-3 no errors\n");*/ }
+
+
+	      | Statement
+	      { $$.u_stat_list = new std::list<Stat_ptr>;
+	      	($$.u_stat_list)->push_back($1.u_stat);
+		 /*printf("Body2-4 no errors\n");*/ }
+
+
+	      | Body2 Body3
+	      { ($1.u_stat_list)->push_back($2.u_stat);
+	      	$$ = $1;
+		 /*printf("Body2-5 no errors\n");*/ }
+
+
+	      | Body3
+	      { $$.u_stat_list = new std::list<Stat_ptr>;
+	      	($$.u_stat_list)->push_back($1.u_stat);
+		 /*printf("Body2-6 no errors\n");*/ }
+	      ;
+
+
+
+
+Body3:        '{' VariableDeclaration3 Body2 '}'
+	      { $$.u_stat = new CodeBlock(new Nested_blockImpl($2.u_decl_list, $3.u_stat_list));
+	       /*printf("Body3-1 no errors\n");*/ }
+	      
+	      | '{' VariableDeclaration3 '}'
+	      { $$.u_stat = new CodeBlock(new Nested_blockImpl($2.u_decl_list, new std::list<Stat_ptr>));
+	       /*printf("Body3-2 no errors\n");*/ }
+
+
+	      | '{' Body2 '}'
+	      { $$.u_stat = new CodeBlock(new Nested_blockImpl(new std::list<Decl_ptr>,$2.u_stat_list));
+	       /*printf("Body3-3 no errors\n");*/ }
+
+
+	      | '{''}'
+	      { $$.u_stat = new CodeBlock(new Nested_blockImpl(new std::list<Decl_ptr>,new std::list<Stat_ptr>));
+	       /*printf("Body3-4 no errors\n");*/ }
+	      ;
+
+
+Statement:    Assignment ';'
+	      { $$.u_stat = $1.u_stat;
+	       /*printf("Statement-1 no errors\n");*/ }
+
+
+	      | FunctionStatement ';'
+	      { $$.u_stat = $1.u_stat;
+	       /*printf("Statement-2 no errors\n");*/ }
+	      ;
+
+
+Expression:   Expression T_PLUS Term
+	      { $$.u_expr = new Plus($1.u_expr, $3.u_expr);
+	       /*printf("Expression-1 no errors\n");*/ }
+	      
+              | Expression T_MINUS Term
+	      { $$.u_expr = new Minus($1.u_expr, $3.u_expr);
+	       /*printf("Expression-2 no errors\n");*/ }
+
+
+	      | Term
+	      { $$.u_expr = $1.u_expr;
+	       /*printf("Expression-3 no errors\n");*/ }
+	      ;
+
+
+Term:         Term T_TIMES Factor
+	      { $$.u_expr = new Times($1.u_expr, $3.u_expr);
+	       /*printf("Term-1 no errors\n");*/ }
+		
+              | Term T_FSLASH Factor
+	      { $$.u_expr = new Div($1.u_expr, $3.u_expr);
+	       /*printf("Term-2 no errors\n");*/ }
+
+
+	      | Term T_AND Factor
+	      { $$.u_expr = new And($1.u_expr, $3.u_expr);
+	       /*printf("Term-3 no errors\n");*/ }
+
+
+	      | Term T_OR Factor
+	      { $$.u_expr = new Or($1.u_expr, $3.u_expr);
+	       /*printf("Term-4 no errors\n");*/ }
+
+
+	      | Term T_EQEQ Factor
+	      { $$.u_expr = new Compare($1.u_expr, $3.u_expr);
+	       /*printf("Term-5 no errors\n");*/ }
+	      
+	      | Term T_LTE Factor
+	      { $$.u_expr = new Lteq($1.u_expr, $3.u_expr);
+	       /*printf("Term-6 no errors\n");*/ }
+
+
+	      | Term T_LT Factor
+	      { $$.u_expr = new Lt($1.u_expr, $3.u_expr);
+	       /*printf("Term-7 no errors\n");*/ }
+
+
+	      | Term T_GTE Factor
+	      { $$.u_expr = new Gteq($1.u_expr, $3.u_expr);
+	       /*printf("Term-8 no errors\n");*/ }
+
+
+	      | Term T_GT Factor
+	      { $$.u_expr = new Gt($1.u_expr, $3.u_expr);
+	       /*printf("Term-9 no errors\n");*/ }
+
+
+	      | Term T_NOTEQ Factor
+	      { $$.u_expr = new Noteq($1.u_expr, $3.u_expr);
+	       /*printf("Term-10 no errors\n");*/ }
+
+
+	      | Factor
+	      { $$.u_expr = $1.u_expr;
+	       /*printf("Term-11 no errors\n");*/ }
+	      ;
+
+
+Factor:       '(' Expression ')'
+	      { $$.u_expr = $2.u_expr;
+	       /*printf("Factor-1 no errors\n");*/ }
+
+
+              | Integers
+ 	      { $$.u_expr = new IntLit($1.u_primitive);
+	       /*printf("Factor-2 no errors\n");*/ }
+ 
+	      | T_MINUS Factor
+	      { $$.u_expr = new Uminus($2.u_expr);
+	       /*printf("Factor-3 no errors\n");*/ }
+
+
+	      | T_PLUS Factor
+	      { $$.u_expr = $2.u_expr;
+	       /*printf("Factor-4 no errors\n");*/ }
+	      
+	      | T_DEREF Factor
+	      { $$.u_expr = new Deref($2.u_expr);
+	       /*printf("Factor-5 no errors\n");*/ }
+
+
+	      | T_NOT Factor
+	      { $$.u_expr = new Not($2.u_expr);
+	       /*printf("Factor-6 no errors\n");*/ }
+
+
+	      | T_FALSE
+	      { $$.u_expr = new BoolLit(new Primitive(yylval.u_base_int));
+	       /*printf("Factor-7 no errors\n");*/ }
+
+
+	      | T_TRUE
+	      { $$.u_expr = new BoolLit(new Primitive(yylval.u_base_int));
+	       /*printf("Factor-8 no errors\n");*/ } 
+
+
+	      | ID
+	      { $$.u_expr = new Ident($1.u_symname);
+	       /*printf("Factor-9 no errors\n");*/ }
+
+
+	      | IDArrAcc
+	      { $$.u_expr = $1.u_expr;
+	       /*printf("Factor-10 no errors\n");*/ }
+
+
+	      | T_CHARACTER
+	      { $$.u_expr = new CharLit(new Primitive(yylval.u_base_int));
+	       /*printf("Factor-11 no errors\n");*/ }
+
+
+	      | T_ADDRESS Factor
+	      { $$.u_expr = new AddressOf($2.u_lhs);
+	       /*printf("Factor-12 no errors\n");*/ }
+
+
+	      | '|' Expression '|'
+	      { $$.u_expr = new AbsoluteValue($2.u_expr);
+	       /*printf("Factor-13 no errors\n");*/ }
+
+
+	      | T_NULL
+	      { $$.u_expr = new NullLit();
+	       /*printf("Factor-14 no errors\n");*/ }
+	      ;
+
+
+Assignment:   IDArrEle T_EQ Expression
+	      { $$.u_stat = new Assignment($1.u_lhs, $3.u_expr);
+	       /*printf("Assignment-1 no errors\n");*/ }
+
+
+	      | ID T_EQ Expression
+	      { $$.u_stat = new Assignment(new Variable($1.u_symname), $3.u_expr);
+	       /*printf("Assignment-2 no errors\n");*/ }
+
+
+	      | ID T_EQ T_STRING
+	      { $$.u_stat = new StringAssignment(new Variable($1.u_symname), new StringPrimitive(yylval.u_base_charptr));
+	       /*printf("Assignment-3 no errors\n");*/ }
+
+              | T_DEREF ID T_EQ Expression
+              { $$.u_stat = new Assignment(new DerefVariable($2.u_symname), $4.u_expr); }  
+	      ;
+
+
+Integers:     T_INTBIN
+	      { $$.u_primitive = new Primitive(yylval.u_base_int);
+	       /*printf("Integers-1 no errors\n");*/ }
+	      
+              | T_INTOCT
+	      { $$.u_primitive = new Primitive(yylval.u_base_int);
+	       /*printf("Integers-2 no errors\n");*/ }
+
+
+	      | T_INTDEC
+	      { $$.u_primitive = new Primitive(yylval.u_base_int);
+	       /*printf("Integers-3 no errors\n");*/ }
+	      
+	      | T_INTHEX
+	      { $$.u_primitive = new Primitive(yylval.u_base_int);
+	       /*printf("Integers-4 no errors\n");*/ }
+	      ;
+
+
+VariableType: T_INT
+	      { $$.u_type = new TInteger();
+	       /*printf("VariableType-1 no errors\n");*/ }
+	      
+	      | T_INTPTR
+	      { $$.u_type = new TIntPtr();
+	       /*printf("VariableType-2 no errors\n");*/ }
+
+
+	      | T_BOOL
+	      { $$.u_type = new TBoolean();
+	       /*printf("VariableType-3 no errors\n");*/ }
+ 
+	      | T_STR '[' Integers ']'
+	      {	$$.u_type = new TString($3.u_primitive);
+	       /*printf("VariableType-4 no errors\n");*/ }
+		
+	      | T_CHAR
+	      { $$.u_type = new TCharacter();
+	       /*printf("VariableType-5 no errors\n");*/ }
+
+
+	      | T_CHARPTR
+	      { $$.u_type = new TCharPtr();
+	       /*printf("VariableType-6 no errors\n");*/ }
+	      ;
+
+
+VariableDeclaration: VariableDeclaration2
+		     { $$.u_decl_list = $1.u_decl_list;
+		      /*printf("VariableDeclaration-1 no errors\n");*/ }
+			
+		     |
+		     { $$.u_decl_list = new std::list<Decl_ptr>;
+		      /*printf("VariableDeclaration-2 no errors\n");*/ }
+		     ;
+
+
+VariableDeclaration2: VariablesDeclaration VariableType
+		      { $$.u_decl_list = new std::list<Decl_ptr>; 
+		       ($$.u_decl_list)->push_back(new DeclImpl($1.u_symname_list, $2.u_type));
+		        /*printf("VariableDelcaration2-1 no errors\n");*/ }
+
+
+		      | VariableDeclaration2 ';' VariablesDeclaration VariableType
+		      {	($1.u_decl_list)->push_back(new DeclImpl($3.u_symname_list, $4.u_type)); 
+			$$ = $1;
+			 /*printf("VariableDeclaration2-2 no errors\n");*/ }
+		      ;
+
+
+VariableDeclaration3: T_VAR VariablesDeclaration VariableType ';'
+		      { $$.u_decl_list = new std::list<Decl_ptr>;
+		      	($$.u_decl_list)->push_back(new DeclImpl($2.u_symname_list, $3.u_type));
+			 /*printf("VariableDeclaration3-1 no errors\n");*/ }
+		      
+		      | VariableDeclaration3 T_VAR VariablesDeclaration VariableType ';'
+		      { ($1.u_decl_list)->push_back(new DeclImpl($3.u_symname_list, $4.u_type));
+		      	$$ = $1;
+			 /*printf("VariableDeclaration3-2 no errors\n");*/ }
+		      ;
+
+
+VariablesDeclaration:  VariablesDeclaration VariablesDeclaration1
+		       { ($1.u_symname_list)->push_back($2.u_symname);
+		       	 $$ = $1;
+			  /*printf("VariablesDeclaration-1 no errors\n");*/ }
+
+		       |
+		       { $$.u_symname_list = new std::list<SymName_ptr>;
+		        /*printf("VariablesDeclaration-2 no errors\n");*/ }
+		       ;
+
+
+VariablesDeclaration1: ID ','
+		       { $$.u_symname = $1.u_symname;
+		        /*printf("VariablesDeclaration1-1 no errors\n");*/ }
+
+		       | ID ':'
+		       { $$.u_symname = $1.u_symname;
+		        /*printf("VariablesDeclaration1-2 no errors\n");*/ }
+		       ;       
+
+
+
+
+IfWhile:    	       T_IF '(' Expression ')' '{' Body2 '}'
+	   	       { $$.u_stat = new IfNoElse($3.u_expr, new Nested_blockImpl(new std::list<Decl_ptr>, $6.u_stat_list));
+	   	       /*printf("IfWhile-1 no errors\n");*/ }
+
+
+	  	       | T_IF '(' Expression ')' '{' '}'
+	   	       { $$.u_stat = new IfNoElse($3.u_expr, new Nested_blockImpl(new std::list<Decl_ptr>, new std::list<Stat_ptr>));
+	     	       /*printf("IfWhile-2 no errors\n");*/ }
+
+
+	   	       | T_IF '(' Expression ')' '{' Body2 '}' Else
+	   	       { $$.u_stat = new IfWithElse($3.u_expr, new Nested_blockImpl(new std::list<Decl_ptr>, $6.u_stat_list), $8.u_nested_block);
+	   	       /*printf("IfWhile-3 no errors\n");*/ }
+
+
+	   	       | T_WHILE '(' Expression ')' '{' '}'
+	      	       { $$.u_stat = new WhileLoop($3.u_expr, new Nested_blockImpl(new std::list<Decl_ptr>, new std::list<Stat_ptr>));
+	       	       /*printf("IfWhile-4 no errors\n");*/ }
+
+
+	      	       | T_WHILE '(' Expression ')' '{' Body2 '}'
+	    	       { $$.u_stat = new WhileLoop($3.u_expr, new Nested_blockImpl(new std::list<Decl_ptr>, $6.u_stat_list));
+	       	       /*printf("IfWhile-5 no errors\n");*/ }
+		
+
+		       | T_IF '(' Expression ')' '{' VariableDeclaration3 Body2 '}'
+	      	       { $$.u_stat = new IfNoElse($3.u_expr, new Nested_blockImpl($6.u_decl_list, $7.u_stat_list));
+	       	       /*printf("IfWhile-6 no errors\n");*/ }
+
+
+	      	       | T_IF '(' Expression ')' '{' VariableDeclaration3 Body2 '}' Else
+	     	        { $$.u_stat = new IfWithElse($3.u_expr, new Nested_blockImpl($6.u_decl_list, $7.u_stat_list), $9.u_nested_block);
+	     		  /*printf("IfWhile-7 no errors\n");*/ }
+
+
+	               | T_WHILE '(' Expression ')' '{' VariableDeclaration3 Body2 '}'
+	    	       { $$.u_stat = new WhileLoop($3.u_expr, new Nested_blockImpl($6.u_decl_list, $7.u_stat_list));
+	      	       /*printf("IfWhile-8 no errors\n");*/ }
+
+
+	     	       | T_IF '(' Expression ')' '{' '}' Else
+	    	       {	$$.u_stat = new IfWithElse($3.u_expr, new Nested_blockImpl(new std::list<Decl_ptr>, new std::list<Stat_ptr>), $7.u_nested_block);
+	    	       /*printf("IfWhile-9 no errors\n");*/ }
+	    	       ;
+
+
+Else:        	       T_ELSE '{' Body2 '}'
+	    	       { $$.u_nested_block = new Nested_blockImpl(new std::list<Decl_ptr>, $3.u_stat_list);
+	     	       /*printf("Else-1 no errors\n");*/ }
+
+
+	      	       | T_ELSE '{' VariableDeclaration3 '}'
+	      	       { $$.u_nested_block = new Nested_blockImpl($3.u_decl_list, new std::list<Stat_ptr>);
+	     	       /*printf("Else-2 no errors\n");*/ }
+
+
+	    	       | T_ELSE '{' VariableDeclaration3 Body2 '}'
+	     	       { $$.u_nested_block = new Nested_blockImpl($3.u_decl_list, $4.u_stat_list);
+	     	       /*printf("Else-3 no errors\n");*/ }
+
+
+	     	       | T_ELSE '{' '}'
+	     	       { $$.u_nested_block = new Nested_blockImpl(new std::list<Decl_ptr>, new std::list<Stat_ptr>);
+	    	       /*printf("Else-4 no errors\n");*/ }
+	    	       ;
+	      
+ID:		       T_ID
+	    	       { $$.u_symname = new SymName(yylval.u_base_charptr);
+	      	       /*printf("ID-1 no errors\n");*/ }
+	     	       ;
+
+
+IDArrEle:     	       T_ID '[' Expression ']'
+	      	       { $$.u_lhs = new ArrayElement(new SymName($1.u_base_charptr), $3.u_expr);
+	      	       /*printf("IDArrEle-1 no errors\n");*/ }
+	     	       ;
+
+
+IDArrAcc:    	       T_ID '[' Expression ']'
+	     	       { $$.u_expr = new ArrayAccess(new SymName($1.u_base_charptr), $3.u_expr);
+	     	       /*printf("IDArrAcc-1 no errors\n");*/ }
+	     	       ;
+
+
+
+
+FunctionStatement:   ID T_EQ ID '(' FunctionExpression1 ')'
+		     { $$.u_stat = new Call(new Variable($1.u_symname), $3.u_symname, $5.u_expr_list);
+		     /*printf("FunctionStatement-1 no errors\n");*/ }
+
+
+		     | IDArrEle T_EQ ID '(' FunctionExpression1 ')'
+		     { $$.u_stat = new Call($1.u_lhs, $3.u_symname, $5.u_expr_list);
+		     /*printf("FunctionStatement-2 no errors\n");*/ }
+		     ;
+
+
+FunctionExpression1: FunctionExpression
+		     { $$.u_expr_list = $1.u_expr_list;
+		     /*printf("FunctionExpression1-1 no errors\n");*/ }
+		     
+		     |
+		     { $$.u_expr_list = new std::list<Expr_ptr>;
+		     /*printf("FunctionExpression1-2 no errors\n");*/ }
+		     ;
+
+
+FunctionExpression:  Expression ',' FunctionExpression
+		     { ($3.u_expr_list)->push_back($1.u_expr);
+		       $$ = $3;
+		       /*printf("FunctionExpression-1 no errors\n");*/ }
+			
+		     | Expression
+		     { $$.u_expr_list = new std::list<Expr_ptr>;
+		       ($$.u_expr_list)->push_back($1.u_expr) ;
+		       /*printf("FunctionExpression-2 no errors\n");*/ }
+		     ;
+
+
+Return:              T_RET Expression ';'
+		     { $$.u_return_stat = new Return($2.u_expr);
+		     /*printf("Return-1 no errors\n");*/ }
+		     ;
+
+
+%%
+
+
+/** You shall not pass!
+ *  You should not  have to do or edit anything past this.
+ */
+
+
+extern int yylineno;
+
+
+void yyerror(const char *s)
+{
+    fprintf(stderr, "%s at line %d\n", s, yylineno);
+    return;
+}

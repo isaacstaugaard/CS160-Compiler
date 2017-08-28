@@ -1,0 +1,130 @@
+procedure foo() return integer
+{
+	procedure foo() return integer { return 0; }
+	procedure foo_2() return integer { return 0; }
+	procedure f234() return integer { return 0;}
+	procedure foo() return integer { return 0; }
+    procedure foo_2() return integer { var a: integer; a = 2; return a; }
+	procedure foo(i, j, k : integer; l, m, n : boolean) return integer { return 0; }
+	procedure fee(a, b : integer) return integer { return 0; }
+	procedure fei(a, b, c : integer; d, e, f : boolean; g, h : integer) return integer { /% trolol %/ return 0; }
+	procedure foo(i, j, k : integer) return integer
+	{
+	    procedure fee(l, m, n : integer) return boolean
+	    {
+	        return true;
+	    }
+	    return 0;
+	}
+	procedure Main() return integer
+	{
+		var a : integer;
+		a = foo();
+		return 0;
+	}
+	procedure foo() return integer
+	{
+	    {
+	        {}
+	    }
+	    return 0;
+	}
+	procedure foo() return integer
+	{
+	    var x : integer;
+	    { 
+	        var y : integer;
+	        x = 1;
+	        y = 2;
+	        {
+	            x = 2;
+	        }
+	        y = 3;
+	     }
+	    return 0;
+	}
+
+    /% trolol %%%%%/
+
+    var x : integer;
+	var a, b : string[100];
+	var c : char;
+	var i: integer;
+	var i : integer;
+	var m, n : boolean;
+	var c : char;
+	var s : string[20];
+
+	c = 'e';
+	a[19] = 'f';
+	a[4+2] = 'g';
+	b = a;
+	b[3] = c;
+	a = "test";
+	i = |s|;
+	/% trolol %/
+    { 
+        var y : integer; 
+        x = 1;
+        x = 3;
+
+        x = a[3];
+        x = &a[3];  
+        x = (a[3] + 10);
+        if (3 ||	/% tro
+
+        x = 0b1110101010;
+        y = (a[10423] + (8 * 3)) / (3 + 10);
+		lol %/ 2) {}
+        if ((3 + 2) / 3 - 5 * 2) {}
+        if (true && false || false) {}
+        if (5) {}
+        if (0x012) {}
+        if (true) {}
+        if (-5) {}
+        if (^x) {}
+        if (^(p+5)) {}
+        if (!false) {
+        	x = x + 2;
+        } else {
+        	x = x + 1;
+        }
+        while (true) {
+        	something = &fail;
+        }
+    }
+
+    {
+		var x : charptr;  
+		var x : integer;
+		var y : intptr;
+		var x : charptr;
+		var y : string[10];
+		var z : char;
+
+
+		unary = !false;
+		un = ----10; /% from piazza for unary operators %/
+		un = +-+-+-+10;
+		x[3] = !!!!!y;
+
+		x = 5;
+		y = &x;
+		x = 6;
+		y = "foobar";
+		x = &y[5];     
+		z = ^(x - 5);       
+		y = "barfoo";  
+		l = x < x;
+		variablename = ^3;
+		x = +-+-+-3;
+    }
+    	/% trolol %/
+
+    return 0;
+
+    	/% trolol %/
+	/% trolol %/
+	/% trolol %/
+
+}
